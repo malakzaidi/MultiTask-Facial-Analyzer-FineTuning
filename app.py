@@ -110,9 +110,38 @@ def allowed_file(filename):
         filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
+def convert_rgba_to_rgb(image):
+    """Convertit une image RGBA en RGB (FIX #1)"""
+    if image.mode == 'RGBA':
+        # Créer un fond blanc
+        rgb_image = Image.new('RGB', image.size, (255, 255, 255))
+        # Coller l'image RGBA en utilisant son canal alpha comme masque
+        rgb_image.paste(image, mask=image.split()[3])
+        return rgb_image
+    elif image.mode == 'P':
+        # Convertir les images en palette
+        return image.convert('RGB')
+    return image
+
+
+def convert_numpy_types(obj):
+    """Convertit les types NumPy en types Python natifs (FIX #2)"""
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+    elif isinstance(obj, (np.int_, np.intc, np.intp, np.int8,
+                          np.int16, np.int32, np.int64,
+                          np.uint8, np.uint16, np.uint32, np.uint64)):
+        return int(obj)
+    elif isinstance(obj, (np.float_, np.float16, np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return obj
+
+
 def save_image(image_data):
     """Sauvegarde une image à partir de données base64 ou fichier"""
-    if 'base64' in image_data:
+    if isinstance(image_data, str) and 'base64' in image_data:
         # Décoder l'image base64
         header, encoded = image_data.split(",", 1)
         image_bytes = base64.b64decode(encoded)
@@ -121,12 +150,15 @@ def save_image(image_data):
         # Ouvrir l'image normale
         image = Image.open(image_data)
 
+    # Convertir RGBA en RGB si nécessaire (FIX #1)
+    image = convert_rgba_to_rgb(image)
+
     # Générer un nom de fichier unique
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"celeba_{timestamp}.jpg"
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
-    # Sauvegarder l'image
+    # Sauvegarder l'image en JPEG
     image.save(filepath, 'JPEG', quality=90)
     return filename, filepath
 
@@ -161,6 +193,8 @@ def predict_attributes(image_tensor):
 
 def generate_confidence_bar(probability):
     """Génère une barre de confiance HTML"""
+    # Convertir numpy types (FIX #2)
+    probability = float(probability)
     width = int(probability * 100)
     color_class = "high-confidence" if probability > 0.7 else "medium-confidence" if probability > 0.5 else "low-confidence"
 
@@ -174,6 +208,8 @@ def generate_confidence_bar(probability):
 
 def generate_result_card(attribute, probability, description):
     """Génère une carte de résultat HTML"""
+    # Convertir numpy types (FIX #2)
+    probability = float(probability)
     is_present = probability > 0.5
     status = "present" if is_present else "absent"
     icon = "✓" if is_present else "✗"
@@ -221,7 +257,7 @@ def about():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Gère l'upload d'image"""
+    """Gère l'upload d'image (FIXED VERSION)"""
     if 'file' not in request.files:
         return jsonify({'error': 'Aucun fichier sélectionné'}), 400
 
@@ -231,7 +267,7 @@ def upload_file():
 
     if file and allowed_file(file.filename):
         try:
-            # Sauvegarder l'image
+            # Sauvegarder l'image (avec conversion RGBA->RGB automatique)
             filename, filepath = save_image(file)
 
             # Prétraiter l'image
@@ -242,25 +278,35 @@ def upload_file():
             # Sauvegarder l'image d'affichage
             display_filename = f"display_{filename}"
             display_path = os.path.join('static/results', display_filename)
+
+            # Convertir RGBA en RGB si nécessaire (FIX #1)
+            display_image = convert_rgba_to_rgb(display_image)
             display_image.save(display_path, 'JPEG', quality=90)
 
             # Faire la prédiction
             probabilities = predict_attributes(input_tensor)
 
-            # Préparer les résultats
+            # Préparer les résultats (FIX #2: Convertir tous les types numpy)
             results = []
             for attr, prob, desc in zip(TARGET_ATTRS, probabilities, ATTRIBUTE_DESCRIPTIONS.values()):
+                # Convertir les types numpy en types Python natifs
+                prob_float = convert_numpy_types(prob)
+                is_present = convert_numpy_types(prob > 0.5)
+
                 results.append({
                     'attribute': attr,
-                    'probability': float(prob),
+                    'probability': prob_float,
                     'description': desc,
-                    'present': prob > 0.5,
-                    'confidence_bar': generate_confidence_bar(prob),
-                    'card_html': generate_result_card(attr, prob, desc)
+                    'present': is_present,
+                    'confidence_bar': generate_confidence_bar(prob_float),
+                    'card_html': generate_result_card(attr, prob_float, desc)
                 })
 
             # Calculer le temps de traitement
             processing_time = "0.5s"  # En temps réel, mesurer avec time.time()
+
+            # Convertir la moyenne numpy en float (FIX #2)
+            avg_confidence = float(np.mean([r['probability'] for r in results]))
 
             return jsonify({
                 'success': True,
@@ -271,12 +317,14 @@ def upload_file():
                 'summary': {
                     'total_attributes': len(TARGET_ATTRS),
                     'present_count': sum(1 for r in results if r['present']),
-                    'avg_confidence': np.mean([r['probability'] for r in results])
+                    'avg_confidence': avg_confidence
                 }
             })
 
         except Exception as e:
             print(f"❌ Erreur lors du traitement: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'error': f'Erreur de traitement: {str(e)}'}), 500
 
     return jsonify({'error': 'Type de fichier non autorisé'}), 400
@@ -284,7 +332,7 @@ def upload_file():
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
-    """API pour prédictions (format JSON)"""
+    """API pour prédictions (format JSON) - FIXED VERSION"""
     if 'image' not in request.files and 'image_url' not in request.json:
         return jsonify({'error': 'Aucune image fournie'}), 400
 
@@ -304,13 +352,16 @@ def api_predict():
         input_tensor, _ = preprocess_image(filepath)
         probabilities = predict_attributes(input_tensor)
 
-        # Formater la réponse
+        # Formater la réponse (FIX #2: Convertir tous les types numpy)
         predictions = {}
         for attr, prob in zip(TARGET_ATTRS, probabilities):
+            prob_float = convert_numpy_types(prob)
+            is_present = convert_numpy_types(prob > 0.5)
+
             predictions[attr] = {
-                'present': bool(prob > 0.5),
-                'probability': float(prob),
-                'confidence': 'high' if prob > 0.8 else 'medium' if prob > 0.6 else 'low'
+                'present': is_present,
+                'probability': prob_float,
+                'confidence': 'high' if prob_float > 0.8 else 'medium' if prob_float > 0.6 else 'low'
             }
 
         return jsonify({
@@ -320,6 +371,9 @@ def api_predict():
         })
 
     except Exception as e:
+        print(f"❌ Erreur API: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 
@@ -346,16 +400,46 @@ def uploaded_file(filename):
 
 
 # ================================================================
-# PAGES D'ERREUR
+# PAGES D'ERREUR (FIX #3)
 # ================================================================
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('404.html'), 404
+    """Gestion des erreurs 404"""
+    try:
+        return render_template('404.html'), 404
+    except:
+        # Si le template n'existe pas, retourner une réponse simple
+        return '''
+        <html>
+        <head><title>404 - Page non trouvée</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1>404</h1>
+            <h2>Page non trouvée</h2>
+            <p>La page que vous recherchez n'existe pas.</p>
+            <p><a href="/">← Retour à l'accueil</a></p>
+        </body>
+        </html>
+        ''', 404
 
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('500.html'), 500
+    """Gestion des erreurs 500"""
+    try:
+        return render_template('500.html'), 500
+    except:
+        # Si le template n'existe pas, retourner une réponse simple
+        return '''
+        <html>
+        <head><title>500 - Erreur serveur</title></head>
+        <body style="font-family: Arial; text-align: center; padding: 50px;">
+            <h1>500</h1>
+            <h2>Erreur serveur</h2>
+            <p>Une erreur s'est produite. Veuillez réessayer.</p>
+            <p><a href="/">← Retour à l'accueil</a></p>
+        </body>
+        </html>
+        ''', 500
 
 
 # ================================================================
@@ -368,6 +452,11 @@ if __name__ == '__main__':
     print(f"📁 Dossier d'upload: {app.config['UPLOAD_FOLDER']}")
     print(f"🎯 Attributs détectés: {', '.join(TARGET_ATTRS)}")
     print(f"⚡ Device: {device}")
+    print("=" * 60)
+    print("✅ FIXES APPLIQUÉS:")
+    print("   1. Conversion RGBA → RGB pour JPEG")
+    print("   2. Conversion numpy.bool_ → bool Python")
+    print("   3. Gestion des erreurs 404/500 avec fallback")
     print("=" * 60)
     print("🌐 Application accessible sur: http://localhost:5000")
     print("=" * 60)

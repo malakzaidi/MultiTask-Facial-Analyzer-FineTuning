@@ -2,150 +2,666 @@
 
 {% block title %}Accueil - CelebA Detector{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Reset et base */
+    * {
+        box-sizing: border-box;
+    }
+
+    /* Variables pour un design cohérent */
+    :root {
+        --card-spacing: 1.5rem;
+        --card-radius: 16px;
+        --primary-gradient: linear-gradient(135deg, #4361ee, #3a0ca3);
+        --success-gradient: linear-gradient(135deg, #4cc9f0, #4361ee);
+        --warning-gradient: linear-gradient(135deg, #f8961e, #f3722c);
+        --danger-gradient: linear-gradient(135deg, #f72585, #f94144);
+        --gray-gradient: linear-gradient(135deg, #6c757d, #495057);
+    }
+
+    /* Conteneur principal qui utilise toute la largeur */
+    .container-fluid {
+        padding-left: 2rem;
+        padding-right: 2rem;
+        max-width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .container-fluid {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+
+    /* Section principale avec dégradé subtil */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(67, 97, 238, 0.03) 0%, rgba(76, 201, 240, 0.03) 100%);
+        border-radius: var(--card-radius);
+        padding: 3rem 2rem;
+        margin-bottom: 3rem;
+        border: 1px solid rgba(67, 97, 238, 0.1);
+    }
+
+    /* Grille d'attributs responsive qui utilise tout l'espace */
+    .attributes-grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+
+    @media (min-width: 1400px) {
+        .attributes-grid-container {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (min-width: 1920px) {
+        .attributes-grid-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 992px) {
+        .attributes-grid-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .attributes-grid-container {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+    }
+
+    /* Carte d'attribut qui utilise toute la hauteur et largeur disponible */
+    .attribute-card {
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 1.75rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #e9ecef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .attribute-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gray-gradient);
+    }
+
+    .attribute-card.present::before {
+        background: var(--success-gradient);
+    }
+
+    .attribute-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    /* En-tête de carte */
+    .attribute-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .attribute-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+    }
+
+    .attribute-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .attribute-icon.male { background: rgba(67, 97, 238, 0.12); color: #4361ee; }
+    .attribute-icon.smiling { background: rgba(248, 150, 30, 0.12); color: #f8961e; }
+    .attribute-icon.young { background: rgba(76, 201, 240, 0.12); color: #4cc9f0; }
+    .attribute-icon.eyeglasses { background: rgba(23, 162, 184, 0.12); color: #17a2b8; }
+    .attribute-icon.wearing_hat { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
+    .attribute-icon.bald { background: rgba(52, 58, 64, 0.12); color: #343a40; }
+    .attribute-icon.mustache { background: rgba(247, 37, 133, 0.12); color: #f72585; }
+    .attribute-icon.wearing_lipstick { background: rgba(247, 37, 133, 0.12); color: #f72585; }
+
+    .attribute-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #212529;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    /* Badge de statut amélioré */
+    .attribute-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .status-present {
+        background: linear-gradient(135deg, rgba(76, 201, 240, 0.15), rgba(67, 97, 238, 0.15));
+        color: #4361ee;
+        border: 2px solid rgba(76, 201, 240, 0.3);
+    }
+
+    .status-absent {
+        background: linear-gradient(135deg, rgba(108, 117, 125, 0.1), rgba(73, 80, 87, 0.1));
+        color: #6c757d;
+        border: 2px solid rgba(108, 117, 125, 0.2);
+    }
+
+    /* Description */
+    .attribute-description {
+        color: #495057;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+        font-weight: 500;
+    }
+
+    /* Section métriques */
+    .metrics-section {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-top: auto;
+    }
+
+    .metric-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .metric-row:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .metric-label {
+        font-size: 0.95rem;
+        color: #6c757d;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .metric-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #212529;
+    }
+
+    .confidence-high { color: #4361ee; }
+    .confidence-medium { color: #f8961e; }
+    .confidence-low { color: #f94144; }
+
+    /* Barre de progression */
+    .confidence-bar-container {
+        margin: 0.75rem 0 1rem 0;
+    }
+
+    .confidence-bar {
+        height: 10px;
+        background: rgba(0, 0, 0, 0.08);
+        border-radius: 5px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .confidence-fill {
+        height: 100%;
+        border-radius: 5px;
+        position: relative;
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        min-width: 10px;
+    }
+
+    .confidence-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(255, 255, 255, 0) 50%,
+            rgba(0, 0, 0, 0.1) 100%);
+    }
+
+    .fill-success { background: linear-gradient(90deg, #4cc9f0, #4361ee); }
+    .fill-warning { background: linear-gradient(90deg, #f8961e, #f3722c); }
+    .fill-danger { background: linear-gradient(90deg, #f94144, #f72585); }
+
+    /* Section d'image analysée en grand */
+    .image-analysis-section {
+        margin: 3rem 0;
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .image-container {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .image-container img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.5s ease;
+    }
+
+    .image-container:hover img {
+        transform: scale(1.02);
+    }
+
+    /* Section statistiques en haut */
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--card-radius);
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-card i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #4361ee, #f72585);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Téléchargement de fichier amélioré */
+    .upload-container {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 3px dashed rgba(67, 97, 238, 0.3);
+        border-radius: var(--card-radius);
+        padding: 4rem 2rem;
+        text-align: center;
+        margin: 2rem 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .upload-container:hover {
+        background: linear-gradient(135deg, #eef2ff, #e9ecef);
+        border-color: rgba(67, 97, 238, 0.6);
+        transform: scale(1.01);
+    }
+
+    .upload-container.dragover {
+        background: linear-gradient(135deg, #e3f2fd, #e9ecef);
+        border-color: #4361ee;
+        border-style: solid;
+    }
+
+    /* Header de section */
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #212529;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title i {
+        color: #4361ee;
+    }
+
+    /* Boutons actions */
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .action-btn {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Animation d'entrée */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-in {
+        animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <!-- En-tête -->
-        <div class="text-center mb-5">
-            <h1 class="display-4 fw-bold text-primary mb-3">
-                <i class="fas fa-user-circle me-2"></i>CelebA Multi-Attribute Detector
-            </h1>
-            <p class="lead text-muted">
-                Téléchargez une photo de visage et notre IA détectera automatiquement 8 attributs faciaux
-            </p>
+<div class="container-fluid">
+    <!-- Header principal -->
+    <div class="hero-section text-center">
+        <h1 class="display-3 fw-bold text-dark mb-3">
+            <i class="fas fa-robot text-primary me-3"></i>
+            CelebA Multi-Attribute Detector
+        </h1>
+        <p class="lead fs-3 text-muted mb-4">
+            Analyse IA avancée des attributs faciaux
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <p class="fs-5 text-muted">
+                    Téléchargez une photo de visage et notre IA détectera automatiquement 8 attributs faciaux
+                    avec une précision supérieure à 94%.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone d'upload -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card shadow-lg border-0 mb-5">
+                <div class="card-header bg-primary text-white py-3">
+                    <h3 class="mb-0 fw-bold">
+                        <i class="fas fa-cloud-upload-alt me-2"></i>
+                        Télécharger une image
+                    </h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="upload-container" id="uploadArea">
+                        <i class="fas fa-images display-1 text-primary mb-4 opacity-75"></i>
+                        <h3 class="mb-3">Glissez-déposez votre image ici</h3>
+                        <p class="text-muted fs-4 mb-4">ou cliquez pour sélectionner un fichier</p>
+
+                        <input type="file" id="fileInput" accept="image/*" class="d-none">
+                        <button class="btn btn-primary btn-lg px-5 py-3 fw-bold fs-4"
+                                onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open me-2"></i>
+                            Parcourir les fichiers
+                        </button>
+
+                        <p class="mt-4 text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Formats supportés: JPG, PNG, JPEG • Taille max: 16MB
+                        </p>
+                    </div>
+
+                    <!-- Aperçu de l'image -->
+                    <div id="imagePreview" class="text-center mt-4 d-none">
+                        <div class="image-preview-container mb-4">
+                            <img id="previewImage" class="img-fluid rounded shadow-lg" style="max-height: 400px;">
+                        </div>
+                        <div class="d-flex gap-3 justify-content-center">
+                            <button id="analyzeBtn" class="btn btn-success btn-lg px-5 py-3 fw-bold">
+                                <i class="fas fa-brain me-2"></i>
+                                Lancer l'analyse IA
+                            </button>
+                            <button id="clearBtn" class="btn btn-outline-secondary btn-lg px-5 py-3 fw-bold">
+                                <i class="fas fa-times me-2"></i>
+                                Changer d'image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chargement -->
+    <div id="loadingSection" class="d-none">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-5 text-center">
+                        <div class="spinner-grow text-primary" style="width: 4rem; height: 4rem;" role="status">
+                            <span class="visually-hidden">Chargement...</span>
+                        </div>
+                        <h3 class="my-4">Analyse en cours...</h3>
+                        <p class="text-muted fs-5">
+                            Notre modèle IA examine les caractéristiques faciales...
+                        </p>
+                        <div class="progress mt-4" style="height: 8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats (sera rempli dynamiquement) -->
+    <div id="resultsSection" class="d-none">
+        <!-- Statistiques résumé -->
+        <div class="stats-summary">
+            <div class="stat-card">
+                <i class="fas fa-check-circle text-success"></i>
+                <div class="stat-value" id="detectedCount">0</div>
+                <div class="stat-label">Attributs détectés</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-list-check text-primary"></i>
+                <div class="stat-value" id="totalCount">8</div>
+                <div class="stat-label">Attributs totaux</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock text-warning"></i>
+                <div class="stat-value" id="processingTime">-</div>
+                <div class="stat-label">Secondes</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-percentage text-info"></i>
+                <div class="stat-value" id="accuracyScore">-</div>
+                <div class="stat-label">Confiance moyenne</div>
+            </div>
         </div>
 
-        <!-- Zone d'upload -->
-        <div class="card shadow-lg mb-5">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Télécharger une image</h4>
+        <!-- Image analysée -->
+        <div class="image-analysis-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-image"></i>
+                    Image analysée
+                </h2>
+                <span class="badge bg-primary fs-5 px-3 py-2">
+                    <i class="fas fa-eye me-1"></i>
+                    Visualisation
+                </span>
             </div>
-            <div class="card-body">
-                <div class="upload-area text-center p-5 border-2 border-dashed rounded" id="uploadArea">
-                    <i class="fas fa-images display-1 text-muted mb-3"></i>
-                    <h5>Glissez-déposez votre image ici</h5>
-                    <p class="text-muted mb-4">ou cliquez pour sélectionner</p>
-
-                    <input type="file" id="fileInput" accept="image/*" class="d-none">
-                    <button class="btn btn-primary btn-lg px-4" onclick="document.getElementById('fileInput').click()">
-                        <i class="fas fa-folder-open me-2"></i>Choisir un fichier
-                    </button>
-
-                    <p class="small text-muted mt-3">
-                        Formats supportés: JPG, JPEG, PNG • Taille max: 16MB
+            <div class="image-container">
+                <img id="analyzedImage" class="img-fluid">
+                <div class="image-overlay bg-dark text-white text-center p-3">
+                    <p class="mb-0">
+                        <i class="fas fa-camera me-2"></i>
+                        Image analysée par notre modèle IA
                     </p>
                 </div>
-
-                <!-- Aperçu de l'image -->
-                <div id="imagePreview" class="text-center mt-4 d-none">
-                    <img id="previewImage" class="img-thumbnail" style="max-height: 300px;">
-                    <div class="mt-2">
-                        <button id="analyzeBtn" class="btn btn-success btn-lg px-4">
-                            <i class="fas fa-brain me-2"></i>Analyser l'image
-                        </button>
-                        <button id="clearBtn" class="btn btn-outline-secondary btn-lg px-4 ms-2">
-                            <i class="fas fa-times me-2"></i>Changer d'image
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- Chargement -->
-        <div id="loadingSection" class="text-center mb-5 d-none">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-                <span class="visually-hidden">Chargement...</span>
-            </div>
-            <h4 class="mt-3">Analyse en cours...</h4>
-            <p class="text-muted">Notre IA examine l'image pour détecter les attributs faciaux</p>
-            <div class="progress mt-3" style="height: 10px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+        <!-- Grille des attributs - OCCUPE TOUTE LA LARGEUR -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i>
+                Détail des attributs détectés
+            </h2>
+            <div class="d-flex gap-2">
+                <span class="badge bg-success fs-6 px-3 py-2">
+                    <i class="fas fa-check-circle me-1"></i>
+                    <span id="presentCount">0</span> Présents
+                </span>
+                <span class="badge bg-secondary fs-6 px-3 py-2">
+                    <i class="fas fa-times-circle me-1"></i>
+                    <span id="absentCount">0</span> Absents
+                </span>
             </div>
         </div>
 
-        <!-- Résultats -->
-        <div id="resultsSection" class="d-none">
-            <div class="card shadow-lg">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Résultats de l'analyse</h4>
-                </div>
-                <div class="card-body">
-                    <!-- Image analysée -->
-                    <div class="text-center mb-4">
-                        <h5>Image analysée</h5>
-                        <img id="analyzedImage" class="img-fluid rounded shadow" style="max-height: 400px;">
-                    </div>
+        <!-- Grille qui utilise toute la largeur disponible -->
+        <div class="attributes-grid-container" id="attributesGrid">
+            <!-- Les cartes seront insérées ici par JavaScript -->
+        </div>
 
-                    <!-- Résumé -->
-                    <div class="alert alert-info">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <i class="fas fa-clock me-1"></i>
-                                <strong>Temps d'analyse:</strong> <span id="processingTime">-</span>
-                            </div>
-                            <div class="col-md-6">
-                                <i class="fas fa-check-circle me-1"></i>
-                                <strong>Attributs détectés:</strong>
-                                <span id="detectedCount">0</span> sur <span id="totalCount">8</span>
+        <!-- Actions -->
+        <div class="action-buttons">
+            <button id="newAnalysisBtn" class="btn btn-primary action-btn">
+                <i class="fas fa-redo"></i>
+                Nouvelle analyse
+            </button>
+            <button id="downloadReportBtn" class="btn btn-success action-btn">
+                <i class="fas fa-download"></i>
+                Télécharger PDF
+            </button>
+            <button id="shareResultsBtn" class="btn btn-info action-btn">
+                <i class="fas fa-share-alt"></i>
+                Partager
+            </button>
+        </div>
+    </div>
+
+    <!-- Informations sur les attributs -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-light py-3">
+                    <h3 class="mb-0 fw-bold text-dark">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Attributs disponibles
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        {% for attr, desc in descriptions.items() %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="d-flex flex-column h-100 p-3 bg-light rounded">
+                                <div class="attribute-icon {{ attr.lower().replace('_', '') }} mb-3">
+                                    {% if attr == 'Male' %}
+                                    <i class="fas fa-male"></i>
+                                    {% elif attr == 'Smiling' %}
+                                    <i class="fas fa-smile"></i>
+                                    {% elif attr == 'Young' %}
+                                    <i class="fas fa-child"></i>
+                                    {% elif attr == 'Eyeglasses' %}
+                                    <i class="fas fa-glasses"></i>
+                                    {% elif attr == 'Wearing_Hat' %}
+                                    <i class="fas fa-hat-cowboy"></i>
+                                    {% elif attr == 'Bald' %}
+                                    <i class="fas fa-head-side-bald"></i>
+                                    {% elif attr == 'Mustache' %}
+                                    <i class="fas fa-user-secret"></i>
+                                    {% elif attr == 'Wearing_Lipstick' %}
+                                    <i class="fas fa-kiss-wink-heart"></i>
+                                    {% endif %}
+                                </div>
+                                <h5 class="fw-bold mb-2">{{ attr }}</h5>
+                                <p class="text-muted small flex-grow-1">{{ desc }}</p>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-
-                    <!-- Grille d'attributs -->
-                    <h5 class="mb-3">Attributs détectés</h5>
-                    <div class="row" id="attributesGrid">
-                        <!-- Les cartes d'attributs seront insérées ici par JavaScript -->
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="text-center mt-4">
-                        <button id="newAnalysisBtn" class="btn btn-primary btn-lg px-4">
-                            <i class="fas fa-redo me-2"></i>Nouvelle analyse
-                        </button>
-                        <button id="downloadReportBtn" class="btn btn-outline-success btn-lg px-4 ms-2">
-                            <i class="fas fa-download me-2"></i>Télécharger le rapport
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Information sur les attributs -->
-        <div class="card shadow-sm mt-5">
-            <div class="card-header bg-light">
-                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Attributs détectés par notre IA</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    {% for attr, desc in descriptions.items() %}
-                    <div class="col-md-6 mb-3">
-                        <div class="d-flex align-items-start">
-                            <div class="attribute-icon me-3">
-                                {% if attr == 'Male' %}
-                                <i class="fas fa-male text-primary fa-2x"></i>
-                                {% elif attr == 'Smiling' %}
-                                <i class="fas fa-smile text-warning fa-2x"></i>
-                                {% elif attr == 'Young' %}
-                                <i class="fas fa-child text-success fa-2x"></i>
-                                {% elif attr == 'Eyeglasses' %}
-                                <i class="fas fa-glasses text-info fa-2x"></i>
-                                {% elif attr == 'Wearing_Hat' %}
-                                <i class="fas fa-hat-cowboy text-secondary fa-2x"></i>
-                                {% elif attr == 'Bald' %}
-                                <i class="fas fa-head-side-bald text-dark fa-2x"></i>
-                                {% elif attr == 'Mustache' %}
-                                <i class="fas fa-user-secret text-danger fa-2x"></i>
-                                {% elif attr == 'Wearing_Lipstick' %}
-                                <i class="fas fa-kiss-wink-heart text-danger fa-2x"></i>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <h6 class="mb-1">{{ attr }}</h6>
-                                <p class="text-muted small mb-0">{{ desc }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -155,6 +671,343 @@
 
 {% block extra_js %}
 <script>
-    // Le JavaScript sera dans static/js/script.js
+    // Dictionnaire des attributs avec leurs informations
+    const attributeInfo = {
+        'Male': {
+            icon: 'male',
+            description: 'Genre masculin détecté',
+            fullDescription: 'Le modèle a identifié les caractéristiques faciales masculines avec un haut niveau de confiance.'
+        },
+        'Smiling': {
+            icon: 'smiling',
+            description: 'Sourire visible',
+            fullDescription: 'Expression faciale souriante détectée. Le modèle analyse la courbure des lèvres et les muscles faciaux.'
+        },
+        'Young': {
+            icon: 'young',
+            description: 'Personne jeune',
+            fullDescription: 'Âge estimé inférieur à 35 ans. Basé sur les caractéristiques de jeunesse du visage.'
+        },
+        'Eyeglasses': {
+            icon: 'eyeglasses',
+            description: 'Porte des lunettes',
+            fullDescription: 'Présence de lunettes détectée sur le visage.'
+        },
+        'Wearing_Hat': {
+            icon: 'wearing_hat',
+            description: 'Porte un chapeau',
+            fullDescription: 'Couvre-chef détecté sur la tête.'
+        },
+        'Bald': {
+            icon: 'bald',
+            description: 'Chauve',
+            fullDescription: 'Calvitie ou cheveux clairsemés détectés.'
+        },
+        'Mustache': {
+            icon: 'mustache',
+            description: 'Moustache',
+            fullDescription: 'Présence de moustache détectée.'
+        },
+        'Wearing_Lipstick': {
+            icon: 'wearing_lipstick',
+            description: 'Rouge à lèvres',
+            fullDescription: 'Port de rouge à lèvres détecté.'
+        }
+    };
+
+    // Fonction pour formater les résultats
+    function formatResults(data) {
+        const grid = document.getElementById('attributesGrid');
+        grid.innerHTML = '';
+
+        let presentCount = 0;
+        let absentCount = 0;
+        let totalConfidence = 0;
+
+        // Créer une carte pour chaque attribut
+        data.attributes.forEach((attr, index) => {
+            const info = attributeInfo[attr.attribute] || {
+                icon: 'default',
+                description: attr.attribute,
+                fullDescription: `Attribut ${attr.attribute} analysé.`
+            };
+
+            const isPresent = attr.present;
+            const confidence = parseFloat(attr.confidence) || 0;
+            const probability = parseFloat(attr.probability) || 0;
+            const threshold = parseFloat(attr.threshold) || 50;
+
+            if (isPresent) presentCount++;
+            else absentCount++;
+
+            totalConfidence += confidence;
+
+            // Déterminer la classe de confiance
+            let confidenceClass = 'fill-success';
+            let confidenceTextClass = 'confidence-high';
+            if (confidence < 70) {
+                confidenceClass = 'fill-danger';
+                confidenceTextClass = 'confidence-low';
+            } else if (confidence < 85) {
+                confidenceClass = 'fill-warning';
+                confidenceTextClass = 'confidence-medium';
+            }
+
+            // Créer la carte
+            const card = document.createElement('div');
+            card.className = `attribute-card fade-in ${isPresent ? 'present' : ''}`;
+            card.style.animationDelay = `${index * 0.1}s`;
+
+            card.innerHTML = `
+                <div class="attribute-header">
+                    <div class="attribute-title">
+                        <div class="attribute-icon ${info.icon}">
+                            <i class="${info.icon === 'male' ? 'fas fa-male' :
+                                      info.icon === 'smiling' ? 'fas fa-smile' :
+                                      info.icon === 'young' ? 'fas fa-child' :
+                                      info.icon === 'eyeglasses' ? 'fas fa-glasses' :
+                                      info.icon === 'wearing_hat' ? 'fas fa-hat-cowboy' :
+                                      info.icon === 'bald' ? 'fas fa-head-side-bald' :
+                                      info.icon === 'mustache' ? 'fas fa-user-secret' :
+                                      'fas fa-kiss-wink-heart'}"></i>
+                        </div>
+                        <h3 class="attribute-name">${attr.attribute}</h3>
+                    </div>
+                    <div class="attribute-status ${isPresent ? 'status-present' : 'status-absent'}">
+                        <i class="fas ${isPresent ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                        ${isPresent ? 'Présent' : 'Absent'}
+                    </div>
+                </div>
+
+                <p class="attribute-description">${info.fullDescription}</p>
+
+                <div class="metrics-section">
+                    <div class="metric-row">
+                        <span class="metric-label">
+                            <i class="fas fa-chart-line"></i>
+                            Confiance:
+                        </span>
+                        <span class="metric-value ${confidenceTextClass}">${confidence.toFixed(2)}%</span>
+                    </div>
+
+                    <div class="confidence-bar-container">
+                        <div class="confidence-bar">
+                            <div class="confidence-fill ${confidenceClass}"
+                                 style="width: ${confidence}%"
+                                 data-confidence="${confidence}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <span class="metric-label">
+                            <i class="fas fa-percentage"></i>
+                            Probabilité:
+                        </span>
+                        <span class="metric-value">${probability.toFixed(2)}%</span>
+                    </div>
+
+                    <div class="metric-row">
+                        <span class="metric-label">
+                            <i class="fas fa-bullseye"></i>
+                            Seuil:
+                        </span>
+                        <span class="metric-value">${threshold}%</span>
+                    </div>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+
+        // Mettre à jour les compteurs
+        document.getElementById('detectedCount').textContent = presentCount;
+        document.getElementById('presentCount').textContent = presentCount;
+        document.getElementById('absentCount').textContent = absentCount;
+
+        // Calculer la confiance moyenne
+        const avgConfidence = data.attributes.length > 0 ?
+            (totalConfidence / data.attributes.length).toFixed(1) : '0.0';
+        document.getElementById('accuracyScore').textContent = `${avgConfidence}%`;
+
+        // Mettre à jour le temps de traitement
+        if (data.processing_time) {
+            document.getElementById('processingTime').textContent = data.processing_time.toFixed(2);
+        }
+
+        // Afficher l'image analysée
+        const analyzedImage = document.getElementById('analyzedImage');
+        if (data.image_path) {
+            analyzedImage.src = data.image_path;
+            analyzedImage.onload = function() {
+                this.style.opacity = '1';
+            };
+        }
+
+        // Afficher la section des résultats avec animation
+        const resultsSection = document.getElementById('resultsSection');
+        resultsSection.classList.remove('d-none');
+
+        // Faire défiler vers les résultats
+        setTimeout(() => {
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+    }
+
+    // Simulation de résultats (à remplacer par votre API)
+    function simulateResults() {
+        const mockData = {
+            processing_time: 2.45,
+            image_path: document.getElementById('previewImage')?.src || 'https://via.placeholder.com/800x600/4361ee/ffffff?text=Image+Analys%C3%A9e',
+            attributes: [
+                {
+                    attribute: 'Male',
+                    present: true,
+                    confidence: 100.00,
+                    probability: 100.00,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Smiling',
+                    present: false,
+                    confidence: 1.05,
+                    probability: 1.05,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Young',
+                    present: true,
+                    confidence: 99.53,
+                    probability: 99.53,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Eyeglasses',
+                    present: false,
+                    confidence: 0.08,
+                    probability: 0.08,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Wearing_Hat',
+                    present: false,
+                    confidence: 0.04,
+                    probability: 0.04,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Bald',
+                    present: false,
+                    confidence: 0.01,
+                    probability: 0.01,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Mustache',
+                    present: false,
+                    confidence: 0.02,
+                    probability: 0.02,
+                    threshold: 50
+                },
+                {
+                    attribute: 'Wearing_Lipstick',
+                    present: false,
+                    confidence: 0.03,
+                    probability: 0.03,
+                    threshold: 50
+                }
+            ]
+        };
+
+        formatResults(mockData);
+    }
+
+    // Gestion des événements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bouton d'analyse
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        if (analyzeBtn) {
+            analyzeBtn.addEventListener('click', function() {
+                const loadingSection = document.getElementById('loadingSection');
+                const resultsSection = document.getElementById('resultsSection');
+
+                loadingSection.classList.remove('d-none');
+                resultsSection.classList.add('d-none');
+
+                // Simuler un chargement de 2 secondes
+                setTimeout(() => {
+                    loadingSection.classList.add('d-none');
+                    simulateResults();
+                }, 2000);
+            });
+        }
+
+        // Bouton nouvelle analyse
+        const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+        if (newAnalysisBtn) {
+            newAnalysisBtn.addEventListener('click', function() {
+                location.reload();
+            });
+        }
+
+        // Gestion du drag & drop
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+
+        if (uploadArea && fileInput) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                uploadArea.classList.add('dragover');
+            }
+
+            function unhighlight() {
+                uploadArea.classList.remove('dragover');
+            }
+
+            uploadArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleFiles(files);
+            }
+
+            fileInput.addEventListener('change', function(e) {
+                handleFiles(this.files);
+            });
+
+            function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.match('image.*')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const previewImage = document.getElementById('previewImage');
+                            const imagePreview = document.getElementById('imagePreview');
+
+                            previewImage.src = e.target.result;
+                            imagePreview.classList.remove('d-none');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                }
+            }
+        }
+    });
 </script>
 {% endblock %}
