@@ -1,0 +1,219 @@
+{% extends "layout.html" %}
+
+{% block title %}À propos - CelebA Detector{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <!-- En-tête -->
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-primary mb-3">
+                <i class="fas fa-info-circle me-2"></i>À propos du projet
+            </h1>
+            <p class="lead text-muted">
+                Découvrez comment fonctionne notre système de détection d'attributs faciaux
+            </p>
+        </div>
+
+        <!-- Architecture -->
+        <div class="card shadow-lg mb-5">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Architecture du modèle</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5>Modèle EfficientNet-B0 Multi-Tâches</h5>
+                        <p>Notre système utilise une architecture de deep learning avancée :</p>
+                        <ul>
+                            <li><strong>Backbone:</strong> EfficientNet-B0 (pré-entraîné sur ImageNet)</li>
+                            <li><strong>Approche:</strong> Apprentissage multi-tâches</li>
+                            <li><strong>Tâches:</strong> 8 attributs faciaux simultanés</li>
+                            <li><strong>Input:</strong> Images 224x224 pixels</li>
+                            <li><strong>Framework:</strong> PyTorch 2.0</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <img src="https://via.placeholder.com/400x250/4361ee/ffffff?text=Architecture+Diagram"
+                             class="img-fluid rounded shadow" alt="Architecture du modèle">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performances -->
+        <div class="card shadow-lg mb-5">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-chart-line me-2"></i>Performances</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-4 fw-bold text-success">94.5%</div>
+                        <p class="text-muted">Accuracy globale</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-4 fw-bold text-primary">0.997</div>
+                        <p class="text-muted">Meilleur AUC (Lunettes)</p>
+                    </div>
+                    <div class="col-md-4 text-center mb-4">
+                        <div class="display-4 fw-bold text-warning">0.132</div>
+                        <p class="text-muted">BCE Loss sur test</p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h5>Détail par attribut :</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Attribut</th>
+                                    <th>Accuracy</th>
+                                    <th>F1-Score</th>
+                                    <th>AUC</th>
+                                    <th>Précision</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fas fa-male text-primary me-2"></i>Male</td>
+                                    <td>96.5%</td>
+                                    <td>95.9%</td>
+                                    <td>0.996</td>
+                                    <td>94.4%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-smile text-warning me-2"></i>Smiling</td>
+                                    <td>88.5%</td>
+                                    <td>86.9%</td>
+                                    <td>0.972</td>
+                                    <td>98.3%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-child text-success me-2"></i>Young</td>
+                                    <td>86.9%</td>
+                                    <td>91.6%</td>
+                                    <td>0.911</td>
+                                    <td>90.3%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-glasses text-info me-2"></i>Eyeglasses</td>
+                                    <td>99.4%</td>
+                                    <td>95.5%</td>
+                                    <td>0.998</td>
+                                    <td>95.2%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-hat-cowboy text-secondary me-2"></i>Wearing_Hat</td>
+                                    <td>99.0%</td>
+                                    <td>89.7%</td>
+                                    <td>0.994</td>
+                                    <td>90.0%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-head-side-bald text-dark me-2"></i>Bald</td>
+                                    <td>98.9%</td>
+                                    <td>77.9%</td>
+                                    <td>0.995</td>
+                                    <td>76.9%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-user-secret text-danger me-2"></i>Mustache</td>
+                                    <td>96.0%</td>
+                                    <td>29.7%</td>
+                                    <td>0.953</td>
+                                    <td>48.2%</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-kiss-wink-heart text-danger me-2"></i>Wearing_Lipstick</td>
+                                    <td>91.0%</td>
+                                    <td>90.3%</td>
+                                    <td>0.978</td>
+                                    <td>92.2%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dataset -->
+        <div class="card shadow-lg mb-5">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="fas fa-database me-2"></i>Dataset CelebA</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Caractéristiques du dataset :</h5>
+                        <ul>
+                            <li><strong>202,599 images</strong> de célébrités</li>
+                            <li><strong>40 attributs</strong> binaires annotés</li>
+                            <li>Images alignées et recadrées</li>
+                            <li>Split officiel : Train/Val/Test</li>
+                            <li>Diversité d'âge, genre et ethnicité</li>
+                        </ul>
+                        <p>Notre modèle a été entraîné sur 8 attributs sélectionnés pour leur pertinence pratique.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Split utilisé :</h5>
+                        <div class="progress mb-3" style="height: 30px;">
+                            <div class="progress-bar bg-success" style="width: 70%">
+                                Entraînement (70%)
+                            </div>
+                            <div class="progress-bar bg-info" style="width: 15%">
+                                Validation (15%)
+                            </div>
+                            <div class="progress-bar bg-warning" style="width: 15%">
+                                Test (15%)
+                            </div>
+                        </div>
+                        <p>Le modèle a été évalué sur 30,390 images de test.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technologies -->
+        <div class="card shadow-lg">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0"><i class="fas fa-cogs me-2"></i>Technologies utilisées</h4>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-4">
+                        <div class="tech-icon">
+                            <i class="fab fa-python fa-3x text-primary mb-3"></i>
+                            <h5>Python 3.9</h5>
+                            <p class="small text-muted">Langage principal</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="tech-icon">
+                            <i class="fas fa-brain fa-3x text-success mb-3"></i>
+                            <h5>PyTorch</h5>
+                            <p class="small text-muted">Deep Learning</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="tech-icon">
+                            <i class="fas fa-flask fa-3x text-warning mb-3"></i>
+                            <h5>Flask</h5>
+                            <p class="small text-muted">Web Framework</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="tech-icon">
+                            <i class="fab fa-html5 fa-3x text-danger mb-3"></i>
+                            <h5>HTML/CSS/JS</h5>
+                            <p class="small text-muted">Interface web</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
